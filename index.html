@@ -1,0 +1,270 @@
+<!doctype html>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>CK-Lite</title>
+<style>
+body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;background:#0b0f14;color:#e6edf3;margin:0}
+.wrap{max-width:960px;margin:0 auto;padding:16px}
+h1{font-size:20px;margin:0 0 12px}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.card{background:#111723;border:1px solid #1f2a38;border-radius:12px;padding:12px}
+.badge{display:inline-block;padding:2px 8px;border-radius:999px;border:1px solid #2d3b4f;font-size:12px;margin-right:6px}
+.hpbar{height:12px;background:#1c2532;border-radius:8px;overflow:hidden}
+.hpbar>div{height:100%;background:#43a047}
+.btns button{margin:4px 6px 0 0}
+button{background:#1c2736;color:#e6edf3;border:1px solid #2a3a4f;border-radius:10px;padding:8px 12px;cursor:pointer}
+button:disabled{opacity:.5;cursor:not-allowed}
+.grid{display:grid;grid-template-columns:repeat(5,1fr);gap:8px}
+.bc{border:1px solid #2a3a4f;border-radius:10px;padding:8px;cursor:pointer;background:#0f1520}
+.bc.sel{outline:2px solid #6ea8fe}
+.log{height:220px;overflow:auto;background:#0f1520;border:1px solid #223047;border-radius:10px;padding:8px;white-space:pre-wrap}
+.small{font-size:12px;opacity:.85}
+.attr{opacity:.8}
+footer{opacity:.6;margin-top:10px;font-size:12px}
+</style>
+<div class="wrap">
+  <h1>CK-Lite</h1>
+  <div class="row">
+    <div class="card" id="pPanel"></div>
+    <div class="card" id="ePanel"></div>
+  </div>
+
+  <div class="card" id="choose">
+    <div class="btns">
+      <strong>スタンス:</strong>
+      <button data-stance="A">アサルト</button>
+      <button data-stance="B">ブレイク</button>
+      <button data-stance="C">カウンター</button>
+    </div>
+    <div style="margin-top:8px">
+      <strong>バトルカード:</strong>
+      <div class="grid" id="bcGrid"></div>
+    </div>
+    <div style="margin-top:8px">
+      <button id="fightBtn" disabled>バトル実行</button>
+      <button id="restartBtn">リスタート</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <div><strong>ログ</strong></div>
+    <div class="log" id="log"></div>
+    <div class="small" style="margin-top:6px">
+      三すくみ: A>B, B>C, C>A / 先攻1.0, 後攻0.8, 同時0.9 / 属性倍率: 勝1.1, 負0.9
+    </div>
+  </div>
+  <footer>v0.1 demo</footer>
+</div>
+
+<script>
+const R = (min,max)=>Math.floor(Math.random()*(max-min+1))+min
+const clamp=(x,a,b)=>Math.max(a,Math.min(b,x))
+const attrs=['fire','water','wind','earth']
+const beats={A:'B',B:'C',C:'A'}
+
+const samplePlayer={
+  leader:{id:'L01',name:'ルビア',hp:120,atk:18,def:6,attr:'fire'},
+  deck:[
+    {id:'B01',name:'フレアスラッシュ',power:20,attr:'fire',support:'same_attr'},
+    {id:'B02',name:'ヒートスパイク',power:16,attr:'fire',support:'finisher'},
+    {id:'B03',name:'メテオピアス',power:22,attr:'fire'},
+    {id:'B04',name:'レイジブレード',power:18,attr:'earth',support:'heal'},
+    {id:'B05',name:'クレセント',power:14,attr:'wind',support:'guard'},
+    {id:'B06',name:'バーニングナックル',power:15,attr:'fire'},
+    {id:'B07',name:'バーサクラッシュ',power:17,attr:'earth'},
+    {id:'B08',name:'スウィフトカット',power:13,attr:'wind'},
+    {id:'B09',name:'アクアバイト',power:16,attr:'water'},
+    {id:'B10',name:'インパクト',power:19,attr:'earth'}
+  ]
+}
+const sampleEnemy={
+  leader:{id:'L99',name:'フロスト',hp:120,atk:17,def:7,attr:'water'},
+  deck:[
+    {id:'E01',name:'タイダルブロウ',power:19,attr:'water',support:'same_attr'},
+    {id:'E02',name:'スプラッシュ',power:14,attr:'water',support:'guard'},
+    {id:'E03',name:'アクアランス',power:20,attr:'water'},
+    {id:'E04',name:'ミストカッター',power:15,attr:'wind'},
+    {id:'E05',name:'シーボルト',power:18,attr:'earth',support:'heal'},
+    {id:'E06',name:'デュアルウェーブ',power:16,attr:'water'},
+    {id:'E07',name:'ブルークラッシュ',power:17,attr:'earth'},
+    {id:'E08',name:'スピンドリフト',power:13,attr:'wind'},
+    {id:'E09',name:'フロストバイト',power:16,attr:'water',support:'finisher'},
+    {id:'E10',name:'トレンチ',power:19,attr:'earth'}
+  ]
+}
+
+let state
+function init(){
+  state={
+    p:structuredClone(samplePlayer),
+    e:structuredClone(sampleEnemy),
+    php:samplePlayer.leader.hp,
+    ehp:sampleEnemy.leader.hp,
+    round:1,
+    pStance:null,
+    pBC:null,
+    eStance:null,
+    eBC:null,
+    over:false,
+  }
+  renderAll(true)
+  log('バトル開始')
+}
+
+function renderPanel(id,leader,hp,deck){
+  const el=document.getElementById(id)
+  const ratio=clamp(hp/leader.hp,0,1)
+  el.innerHTML=`
+    <div style='display:flex;justify-content:space-between;align-items:center;margin-bottom:8px'>
+      <div>
+        <div style='font-weight:700'>${leader.name}</div>
+        <div class='small attr'>attr:${leader.attr} atk:${leader.atk} def:${leader.def}</div>
+      </div>
+      <span class='badge'>R.${state.round}</span>
+    </div>
+    <div class='hpbar'><div style='width:${(ratio*100).toFixed(1)}%'></div></div>
+    <div class='small' style='margin-top:6px'>HP ${hp} / ${leader.hp}</div>
+    <div class='small' style='margin-top:8px'>カード残:${deck.length}</div>
+  `
+}
+function renderBCs(){
+  const g=document.getElementById('bcGrid')
+  g.innerHTML=''
+  state.p.deck.forEach((c,i)=>{
+    const b=document.createElement('div')
+    b.className='bc'+(state.pBC===i?' sel':'')
+    b.innerHTML=`<div>${c.name}</div><div class='small'>pow:${c.power} attr:${c.attr}${c.support?(' / '+c.support):''}</div>`
+    b.onclick=()=>{
+      if(state.over) return
+      state.pBC=i
+      renderBCs()
+      checkFightReady()
+    }
+    g.appendChild(b)
+  })
+}
+function pickEnemy(){
+  state.eStance=['A','B','C'][R(0,2)]
+  state.eBC=R(0,state.e.deck.length-1)
+}
+function stanceText(s){return s==='A'?'アサルト':s==='B'?'ブレイク':'カウンター'}
+
+function judge(a,b){
+  if(a===b) return 'same'
+  if(beats[a]===b) return 'a'
+  if(beats[b]===a) return 'b'
+  return 'same'
+}
+
+function attrMult(a,b){
+  const win=(x,y)=> (x==='fire'&&y==='wind')||(x==='wind'&&y==='earth')||(x==='earth'&&y==='water')||(x==='water'&&y==='fire')
+  if(a===b) return 1.0
+  if(win(a,b)) return 1.1
+  if(win(b,a)) return 0.9
+  return 1.0
+}
+
+function dmg(lead,bc,oppLead,stanceRole,oppSupportShield){
+  const stanceMult = stanceRole==='first'?1.0:(stanceRole==='second'?0.8:0.9)
+  const base = (lead.atk + bc.power) * stanceMult
+  let add = 0
+  let guard = 0
+  if(bc.support==='same_attr' && bc.attr===lead.attr) add+=20
+  if(bc.support==='finisher' && false) add+=30
+  if(bc.support==='guard') guard+=15
+  const defRed = oppLead.def*0.5
+  let d = Math.max(0, Math.floor(base + add - defRed - (oppSupportShield||0)))
+  const mult = attrMult(bc.attr, oppLead.attr)
+  d = Math.floor(d * mult)
+  const noise = 1 + (R(-5,5)/100)
+  d = Math.max(0, Math.floor(d*noise))
+  return {d, guard, heal: bc.support==='heal'?10:0}
+}
+
+function applyRound(){
+  const pLead=state.p.leader, eLead=state.e.leader
+  const pC=state.p.deck[state.pBC], eC=state.e.deck[state.eBC]
+  const who=judge(state.pStance,state.eStance)
+  let pRole='same', eRole='same'
+  if(who==='a'){pRole='first'; eRole='second'}
+  else if(who==='b'){pRole='second'; eRole='first'}
+  const pFirst = pRole==='first'
+  const order = pFirst ? ['p','e'] : (eRole==='first'?['e','p'] : ['p','e'])
+
+  let pShield=0, eShield=0
+  if(pC.support==='guard') pShield+=15
+  if(eC.support==='guard') eShield+=15
+
+  const step=(side)=>{
+    if(side==='p'){
+      const out=dmg(pLead,pC,eLead, pRole, eShield)
+      state.ehp = Math.max(0, state.ehp - out.d)
+      if(out.heal) state.php = Math.min(pLead.hp, state.php + out.heal)
+      log(`あなた ${stanceText(state.pStance)} / ${pC.name} → 敵に ${out.d} ダメージ`)
+    }else{
+      const out=dmg(eLead,eC,pLead, eRole, pShield)
+      state.php = Math.max(0, state.php - out.d)
+      if(out.heal) state.ehp = Math.min(eLead.hp, state.ehp + out.heal)
+      log(`敵 ${stanceText(state.eStance)} / ${eC.name} → あなたに ${out.d} ダメージ`)
+    }
+  }
+  order.forEach(s=>step(s))
+
+  state.p.deck.splice(state.pBC,1)
+  state.e.deck.splice(state.eBC,1)
+  state.pBC=null
+  state.pStance=null
+  state.eBC=null
+  state.eStance=null
+  state.round++
+
+  if(state.php<=0 || state.ehp<=0 || state.round>10){
+    state.over=true
+    if(state.php>state.ehp) log('勝利！')
+    else if(state.php<state.ehp) log('敗北...')
+    else log('引き分け')
+  }
+}
+
+function log(s){
+  const el=document.getElementById('log')
+  el.textContent += s+'\n'
+  el.scrollTop=el.scrollHeight
+}
+
+function renderAll(fresh){
+  renderPanel('pPanel',state.p.leader,state.php,state.p.deck)
+  renderPanel('ePanel',state.e.leader,state.ehp,state.e.deck)
+  if(fresh){
+    renderBCs()
+    document.getElementById('log').textContent=''
+  }
+  document.querySelectorAll('[data-stance]').forEach(b=>{
+    b.onclick=()=>{
+      if(state.over) return
+      state.pStance=b.dataset.stance
+      document.querySelectorAll('[data-stance]').forEach(x=>x.disabled=false)
+      b.disabled=true
+      checkFightReady()
+    }
+  })
+  document.getElementById('restartBtn').onclick=()=>init()
+  document.getElementById('fightBtn').onclick=()=>{
+    if(state.over) return
+    if(state.pBC==null||!state.pStance) return
+    pickEnemy()
+    log(`あなた:${stanceText(state.pStance)} / 敵:${stanceText(state.eStance)}`)
+    applyRound()
+    renderAll()
+    checkFightReady()
+  }
+  checkFightReady()
+}
+
+function checkFightReady(){
+  const go = state.pBC!=null && state.pStance && !state.over
+  document.getElementById('fightBtn').disabled=!go
+}
+
+init()
+</script>
