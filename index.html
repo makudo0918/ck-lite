@@ -1,270 +1,311 @@
 <!doctype html>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>CK-Lite</title>
+<title>CK-Lite v0.2</title>
 <style>
-body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;background:#0b0f14;color:#e6edf3;margin:0}
-.wrap{max-width:960px;margin:0 auto;padding:16px}
-h1{font-size:20px;margin:0 0 12px}
-.row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-.card{background:#111723;border:1px solid #1f2a38;border-radius:12px;padding:12px}
-.badge{display:inline-block;padding:2px 8px;border-radius:999px;border:1px solid #2d3b4f;font-size:12px;margin-right:6px}
-.hpbar{height:12px;background:#1c2532;border-radius:8px;overflow:hidden}
-.hpbar>div{height:100%;background:#43a047}
-.btns button{margin:4px 6px 0 0}
-button{background:#1c2736;color:#e6edf3;border:1px solid #2a3a4f;border-radius:10px;padding:8px 12px;cursor:pointer}
-button:disabled{opacity:.5;cursor:not-allowed}
-.grid{display:grid;grid-template-columns:repeat(5,1fr);gap:8px}
-.bc{border:1px solid #2a3a4f;border-radius:10px;padding:8px;cursor:pointer;background:#0f1520}
-.bc.sel{outline:2px solid #6ea8fe}
-.log{height:220px;overflow:auto;background:#0f1520;border:1px solid #223047;border-radius:10px;padding:8px;white-space:pre-wrap}
-.small{font-size:12px;opacity:.85}
-.attr{opacity:.8}
-footer{opacity:.6;margin-top:10px;font-size:12px}
+*{box-sizing:border-box}body{font-family:ui-sans-serif,system-ui,Segoe UI,Roboto,Helvetica,Arial,sans-serif;background:#0b0f14;color:#e6edf3;margin:0}header{display:flex;gap:12px;align-items:center;padding:12px 16px;border-bottom:1px solid #1c2736;background:#0f1520;position:sticky;top:0;z-index:10}header h1{font-size:18px;margin:0}header .tabs{display:flex;gap:8px;margin-left:auto}button{background:#1c2736;color:#e6edf3;border:1px solid #2a3a4f;border-radius:10px;padding:8px 12px;cursor:pointer}button:disabled{opacity:.5;cursor:not-allowed}main{max-width:1100px;margin:0 auto;padding:16px;display:grid;gap:12px}.panel{background:#111723;border:1px solid #1f2a38;border-radius:12px;padding:12px}.row{display:grid;grid-template-columns:1fr 1fr;gap:12px}.hpbar{height:12px;background:#1b2431;border-radius:8px;overflow:hidden}.hpbar>div{height:100%;background:#43a047}.small{font-size:12px;opacity:.85}.grid{display:grid;grid-template-columns:repeat(5,1fr);gap:8px}.card{border:1px solid #2a3a4f;border-radius:10px;padding:8px;background:#0f1520;cursor:pointer}.card.sel{outline:2px solid #6ea8fe}.line{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.pill{display:inline-block;padding:2px 8px;border:1px solid #2d3b4f;border-radius:999px;font-size:12px}.log{height:240px;overflow:auto;background:#0f1520;border:1px solid #223047;border-radius:10px;padding:8px;white-space:pre-wrap}.cols3{display:grid;grid-template-columns:2fr 1fr 1fr;gap:12px}.list{display:grid;grid-template-columns:repeat(6,1fr);gap:8px;max-height:320px;overflow:auto}.slot{border:1px dashed #2a3a4f;border-radius:10px;height:72px;display:flex;align-items:center;justify-content:center;color:#8aa}input,select,textarea{background:#0f1520;border:1px solid #2a3a4f;color:#e6edf3;border-radius:8px;padding:8px;width:100%}.section-title{font-weight:700;margin-bottom:6px}.flex{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.num{width:100px}table{width:100%;border-collapse:collapse}td,th{border-bottom:1px solid #1e2a39;padding:6px;text-align:left}.right{text-align:right}.mt8{margin-top:8px}.mt12{margin-top:12px}.mt16{margin-top:16px}.warn{color:#ffcc80}.success{color:#9ccc65}
 </style>
-<div class="wrap">
-  <h1>CK-Lite</h1>
-  <div class="row">
-    <div class="card" id="pPanel"></div>
-    <div class="card" id="ePanel"></div>
+<header>
+  <h1>CK-Lite v0.2</h1>
+  <div class="tabs">
+    <button data-tab="battle">Battle</button>
+    <button data-tab="deck">Deck</button>
+    <button data-tab="gacha">Gacha</button>
+    <button data-tab="create">Create</button>
+    <button data-tab="save">Save/Load</button>
   </div>
+</header>
+<main>
+  <section class="panel" data-page="battle">
+    <div class="row">
+      <div class="panel" id="pPanel"></div>
+      <div class="panel" id="ePanel"></div>
+    </div>
+    <div class="panel">
+      <div class="line">
+        <div class="section-title">Stance</div>
+        <button data-stance="A">A</button>
+        <button data-stance="B">B</button>
+        <button data-stance="C">C</button>
+        <div class="pill" id="stagePill"></div>
+        <div class="pill" id="ptPill"></div>
+      </div>
+      <div class="mt8">
+        <div class="section-title">Battle Cards</div>
+        <div class="grid" id="bcGrid"></div>
+      </div>
+      <div class="mt8 line">
+        <button id="fightBtn" disabled>Fight</button>
+        <button id="restartBtn">Restart Stage</button>
+        <span class="small">A&gt;B, B&gt;C, C&gt;A / first×1.0, second×0.8, same×0.9 / attr: win1.1 lose0.9</span>
+      </div>
+    </div>
+    <div class="panel">
+      <div class="section-title">Log</div>
+      <div class="log" id="log"></div>
+    </div>
+  </section>
 
-  <div class="card" id="choose">
-    <div class="btns">
-      <strong>スタンス:</strong>
-      <button data-stance="A">アサルト</button>
-      <button data-stance="B">ブレイク</button>
-      <button data-stance="C">カウンター</button>
+  <section class="panel" data-page="deck" hidden>
+    <div class="cols3">
+      <div>
+        <div class="section-title">Inventory</div>
+        <div class="list" id="invList"></div>
+      </div>
+      <div>
+        <div class="section-title">Leader</div>
+        <div id="leaderArea" class="slot">Drop or Select</div>
+        <div class="mt8 small" id="leaderInfo"></div>
+      </div>
+      <div>
+        <div class="section-title">Deck (10)</div>
+        <div id="deckSlots" class="list"></div>
+        <div class="mt8 line">
+          <button id="saveDeckBtn">Save Deck</button>
+          <button id="clearDeckBtn">Clear</button>
+        </div>
+      </div>
     </div>
-    <div style="margin-top:8px">
-      <strong>バトルカード:</strong>
-      <div class="grid" id="bcGrid"></div>
-    </div>
-    <div style="margin-top:8px">
-      <button id="fightBtn" disabled>バトル実行</button>
-      <button id="restartBtn">リスタート</button>
-    </div>
-  </div>
+  </section>
 
-  <div class="card">
-    <div><strong>ログ</strong></div>
-    <div class="log" id="log"></div>
-    <div class="small" style="margin-top:6px">
-      三すくみ: A>B, B>C, C>A / 先攻1.0, 後攻0.8, 同時0.9 / 属性倍率: 勝1.1, 負0.9
+  <section class="panel" data-page="gacha" hidden>
+    <div class="row">
+      <div>
+        <div class="section-title">Gacha</div>
+        <div class="line">
+          <div>Cost: <span class="pill">100 pt</span></div>
+          <button id="pull1">Pull ×1</button>
+          <button id="pull10">Pull ×10</button>
+          <div class="pill" id="ptPill2"></div>
+        </div>
+        <div class="mt12" id="gachaResult" class="list"></div>
+      </div>
+      <div>
+        <div class="section-title">Pool</div>
+        <table id="poolTable">
+          <thead><tr><th>ID</th><th>Name</th><th>Rarity</th><th>Attr</th><th class="right">Pow</th><th>Support</th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
     </div>
-  </div>
-  <footer>v0.1 demo</footer>
-</div>
+  </section>
+
+  <section class="panel" data-page="create" hidden>
+    <div class="row">
+      <div>
+        <div class="section-title">New Card</div>
+        <div class="mt8">Name<input id="c_name"></div>
+        <div class="mt8">ID<input id="c_id" placeholder="auto if blank"></div>
+        <div class="mt8 line">
+          <div class="num">HP<input id="c_hp" type="number" value="110"></div>
+          <div class="num">ATK<input id="c_atk" type="number" value="18"></div>
+          <div class="num">DEF<input id="c_def" type="number" value="6"></div>
+          <div>
+            Attr
+            <select id="c_attr">
+              <option>fire</option><option>water</option><option>wind</option><option>earth</option>
+            </select>
+          </div>
+        </div>
+        <div class="mt8 line">
+          <div class="num">Power<input id="c_pow" type="number" value="18"></div>
+          <div>Support
+            <select id="c_sup">
+              <option value="">none</option>
+              <option>same_attr</option>
+              <option>finisher</option>
+              <option>guard</option>
+              <option>heal</option>
+              <option>pierce</option>
+              <option value="aura_atk5">aura_atk5</option>
+              <option value="aura_def5">aura_def5</option>
+              <option value="aura_hp20">aura_hp20</option>
+            </select>
+          </div>
+          <div>Rarity
+            <select id="c_rarity">
+              <option>N</option><option>R</option><option>SR</option>
+            </select>
+          </div>
+        </div>
+        <div class="mt8 line">
+          <button id="addCardBtn">Add Card</button>
+          <span id="addCardMsg" class="small"></span>
+        </div>
+      </div>
+      <div>
+        <div class="section-title">New Enemy</div>
+        <div class="mt8">Name<input id="e_name"></div>
+        <div class="mt8">ID<input id="e_id" placeholder="auto if blank"></div>
+        <div class="mt8 line">
+          <div class="num">Leader HP<input id="e_hp" type="number" value="120"></div>
+          <div class="num">ATK<input id="e_atk" type="number" value="18"></div>
+          <div class="num">DEF<input id="e_def" type="number" value="6"></div>
+          <div>
+            Attr
+            <select id="e_attr">
+              <option>fire</option><option>water</option><option>wind</option><option>earth</option>
+            </select>
+          </div>
+        </div>
+        <div class="mt8">Deck JSON<textarea id="e_deck" rows="6" placeholder='[{"id":"X01","name":"Strike","power":16,"attr":"fire","support":""},...]'></textarea></div>
+        <div class="mt8 line">
+          <button id="addEnemyBtn">Add Enemy</button>
+          <span id="addEnemyMsg" class="small"></span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="panel" data-page="save" hidden>
+    <div class="row">
+      <div>
+        <div class="section-title">Browser Save</div>
+        <div class="line">
+          <button id="saveLocal">Save to Browser</button>
+          <button id="loadLocal">Load from Browser</button>
+          <span id="localMsg" class="small"></span>
+        </div>
+        <div class="mt12 section-title">Download Backup</div>
+        <div class="line">
+          <button id="downloadSave">Download JSON</button>
+          <span class="small">保存ファイルを配布すれば他の人も同じコレクションで遊べます</span>
+        </div>
+      </div>
+      <div>
+        <div class="section-title">Load from File</div>
+        <input type="file" id="fileInput" accept=".json">
+        <div class="mt8">
+          <div class="section-title">Or Paste JSON</div>
+          <textarea id="pasteJson" rows="8" placeholder="{...}"></textarea>
+          <div class="mt8 line">
+            <button id="loadPaste">Load Pasted JSON</button>
+            <span id="loadMsg" class="small"></span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
 
 <script>
-const R = (min,max)=>Math.floor(Math.random()*(max-min+1))+min
+const R=(a,b)=>Math.floor(Math.random()*(b-a+1))+a
 const clamp=(x,a,b)=>Math.max(a,Math.min(b,x))
-const attrs=['fire','water','wind','earth']
 const beats={A:'B',B:'C',C:'A'}
-
-const samplePlayer={
-  leader:{id:'L01',name:'ルビア',hp:120,atk:18,def:6,attr:'fire'},
-  deck:[
-    {id:'B01',name:'フレアスラッシュ',power:20,attr:'fire',support:'same_attr'},
-    {id:'B02',name:'ヒートスパイク',power:16,attr:'fire',support:'finisher'},
-    {id:'B03',name:'メテオピアス',power:22,attr:'fire'},
-    {id:'B04',name:'レイジブレード',power:18,attr:'earth',support:'heal'},
-    {id:'B05',name:'クレセント',power:14,attr:'wind',support:'guard'},
-    {id:'B06',name:'バーニングナックル',power:15,attr:'fire'},
-    {id:'B07',name:'バーサクラッシュ',power:17,attr:'earth'},
-    {id:'B08',name:'スウィフトカット',power:13,attr:'wind'},
-    {id:'B09',name:'アクアバイト',power:16,attr:'water'},
-    {id:'B10',name:'インパクト',power:19,attr:'earth'}
-  ]
-}
-const sampleEnemy={
-  leader:{id:'L99',name:'フロスト',hp:120,atk:17,def:7,attr:'water'},
-  deck:[
-    {id:'E01',name:'タイダルブロウ',power:19,attr:'water',support:'same_attr'},
-    {id:'E02',name:'スプラッシュ',power:14,attr:'water',support:'guard'},
-    {id:'E03',name:'アクアランス',power:20,attr:'water'},
-    {id:'E04',name:'ミストカッター',power:15,attr:'wind'},
-    {id:'E05',name:'シーボルト',power:18,attr:'earth',support:'heal'},
-    {id:'E06',name:'デュアルウェーブ',power:16,attr:'water'},
-    {id:'E07',name:'ブルークラッシュ',power:17,attr:'earth'},
-    {id:'E08',name:'スピンドリフト',power:13,attr:'wind'},
-    {id:'E09',name:'フロストバイト',power:16,attr:'water',support:'finisher'},
-    {id:'E10',name:'トレンチ',power:19,attr:'earth'}
-  ]
-}
-
+const ATTRS=['fire','water','wind','earth']
+const BASE_POOL=[
+{id:'B01',name:'フレアスラッシュ',hp:110,atk:18,def:6,attr:'fire',power:20,support:'same_attr',rarity:'N'},
+{id:'B02',name:'ヒートスパイク',hp:110,atk:18,def:6,attr:'fire',power:16,support:'finisher',rarity:'R'},
+{id:'B03',name:'メテオピアス',hp:115,atk:19,def:6,attr:'fire',power:22,support:'',rarity:'R'},
+{id:'B04',name:'レイジブレード',hp:120,atk:17,def:7,attr:'earth',power:18,support:'heal',rarity:'R'},
+{id:'B05',name:'クレセント',hp:105,atk:16,def:8,attr:'wind',power:14,support:'guard',rarity:'N'},
+{id:'B06',name:'バーニングナックル',hp:110,atk:18,def:6,attr:'fire',power:15,support:'',rarity:'N'},
+{id:'B07',name:'バーサクラッシュ',hp:118,atk:17,def:7,attr:'earth',power:17,support:'',rarity:'N'},
+{id:'B08',name:'スウィフトカット',hp:108,atk:16,def:6,attr:'wind',power:13,support:'',rarity:'N'},
+{id:'B09',name:'アクアバイト',hp:112,atk:17,def:6,attr:'water',power:16,support:'',rarity:'N'},
+{id:'B10',name:'インパクト',hp:116,atk:18,def:7,attr:'earth',power:19,support:'',rarity:'R'},
+{id:'B11',name:'ピアースエッジ',hp:112,atk:19,def:5,attr:'wind',power:17,support:'pierce',rarity:'R'},
+{id:'B12',name:'ガーディアンオーブ',hp:125,atk:14,def:9,attr:'earth',power:12,support:'aura_def5',rarity:'SR'},
+{id:'B13',name:'バイタルフレア',hp:130,atk:16,def:6,attr:'fire',power:12,support:'aura_hp20',rarity:'SR'},
+{id:'B14',name:'ブレイズハート',hp:118,atk:20,def:6,attr:'fire',power:18,support:'aura_atk5',rarity:'SR'}
+]
+const ENEMY_STAGES=[
+{name:'スライム',id:'E01',leader:{name:'スライム',hp:90,atk:14,def:5,attr:'water'},deck:[
+{id:'E01a',name:'ぬるパンチ',power:12,attr:'water',support:''},
+{id:'E01b',name:'ひっかき',power:11,attr:'wind',support:''},
+{id:'E01c',name:'しぶき',power:13,attr:'water',support:'guard'},
+{id:'E01d',name:'ころがり',power:12,attr:'earth',support:''},
+{id:'E01e',name:'ぬめり',power:10,attr:'water',support:'heal'},
+{id:'E01f',name:'しずく',power:11,attr:'water',support:''},
+{id:'E01g',name:'つっつき',power:10,attr:'wind',support:''},
+{id:'E01h',name:'すいこみ',power:12,attr:'water',support:''},
+{id:'E01i',name:'ひやしみず',power:13,attr:'water',support:''},
+{id:'E01j',name:'ころころ',power:11,attr:'earth',support:''}
+]},
+{name:'ファイアウルフ',id:'E02',leader:{name:'ファイアウルフ',hp:110,atk:17,def:6,attr:'fire'},deck:[
+{id:'E02a',name:'ファング',power:16,attr:'earth',support:''},
+{id:'E02b',name:'フレイムバイト',power:18,attr:'fire',support:'same_attr'},
+{id:'E02c',name:'ほうこう',power:14,attr:'wind',support:''},
+{id:'E02d',name:'かみくだき',power:17,attr:'earth',support:'pierce'},
+{id:'E02e',name:'かえんほうしゃ',power:19,attr:'fire',support:''},
+{id:'E02f',name:'ひっかき',power:14,attr:'wind',support:''},
+{id:'E02g',name:'しっぽ',power:15,attr:'earth',support:''},
+{id:'E02h',name:'フレイムチャージ',power:16,attr:'fire',support:'heal'},
+{id:'E02i',name:'ひのこ',power:15,attr:'fire',support:''},
+{id:'E02j',name:'がぶり',power:16,attr:'earth',support:''}
+]},
+{name:'ロックタイタン',id:'E03',leader:{name:'ロックタイタン',hp:130,atk:19,def:8,attr:'earth'},deck:[
+{id:'E03a',name:'ロックハンマー',power:20,attr:'earth',support:''},
+{id:'E03b',name:'ストーンエッジ',power:18,attr:'earth',support:'guard'},
+{id:'E03c',name:'グランドスマッシュ',power:21,attr:'earth',support:''},
+{id:'E03d',name:'ダストストーム',power:16,attr:'wind',support:''},
+{id:'E03e',name:'クラック',power:17,attr:'earth',support:'pierce'},
+{id:'E03f',name:'タックル',power:16,attr:'earth',support:''},
+{id:'E03g',name:'リジェネ岩',power:14,attr:'earth',support:'heal'},
+{id:'E03h',name:'ボルダー',power:18,attr:'earth',support:''},
+{id:'E03i',name:'アースウェーブ',power:19,attr:'earth',support:''},
+{id:'E03j',name:'グラビティ',power:17,attr:'wind',support:''}
+]},
+{name:'テンペストドラゴン',id:'E04',leader:{name:'テンペストドラゴン',hp:150,atk:21,def:9,attr:'wind'},deck:[
+{id:'E04a',name:'テンペストブレス',power:22,attr:'wind',support:'same_attr'},
+{id:'E04b',name:'サイクロン',power:20,attr:'wind',support:''},
+{id:'E04c',name:'ウィンドスピア',power:19,attr:'wind',support:''},
+{id:'E04d',name:'ドラゴンクロー',power:21,attr:'earth',support:'pierce'},
+{id:'E04e',name:'エアロヒール',power:16,attr:'wind',support:'heal'},
+{id:'E04f',name:'ハリケーン',power:22,attr:'wind',support:''},
+{id:'E04g',name:'ストームダイブ',power:20,attr:'wind',support:''},
+{id:'E04h',name:'タービュランス',power:18,attr:'wind',support:''},
+{id:'E04i',name:'ゲイル',power:19,attr:'wind',support:''},
+{id:'E04j',name:'レイジングガスト',power:21,attr:'wind',support:''}
+]}
+]
 let state
-function init(){
-  state={
-    p:structuredClone(samplePlayer),
-    e:structuredClone(sampleEnemy),
-    php:samplePlayer.leader.hp,
-    ehp:sampleEnemy.leader.hp,
-    round:1,
-    pStance:null,
-    pBC:null,
-    eStance:null,
-    eBC:null,
-    over:false,
-  }
-  renderAll(true)
-  log('バトル開始')
-}
-
-function renderPanel(id,leader,hp,deck){
-  const el=document.getElementById(id)
-  const ratio=clamp(hp/leader.hp,0,1)
-  el.innerHTML=`
-    <div style='display:flex;justify-content:space-between;align-items:center;margin-bottom:8px'>
-      <div>
-        <div style='font-weight:700'>${leader.name}</div>
-        <div class='small attr'>attr:${leader.attr} atk:${leader.atk} def:${leader.def}</div>
-      </div>
-      <span class='badge'>R.${state.round}</span>
-    </div>
-    <div class='hpbar'><div style='width:${(ratio*100).toFixed(1)}%'></div></div>
-    <div class='small' style='margin-top:6px'>HP ${hp} / ${leader.hp}</div>
-    <div class='small' style='margin-top:8px'>カード残:${deck.length}</div>
-  `
-}
-function renderBCs(){
-  const g=document.getElementById('bcGrid')
-  g.innerHTML=''
-  state.p.deck.forEach((c,i)=>{
-    const b=document.createElement('div')
-    b.className='bc'+(state.pBC===i?' sel':'')
-    b.innerHTML=`<div>${c.name}</div><div class='small'>pow:${c.power} attr:${c.attr}${c.support?(' / '+c.support):''}</div>`
-    b.onclick=()=>{
-      if(state.over) return
-      state.pBC=i
-      renderBCs()
-      checkFightReady()
-    }
-    g.appendChild(b)
-  })
-}
-function pickEnemy(){
-  state.eStance=['A','B','C'][R(0,2)]
-  state.eBC=R(0,state.e.deck.length-1)
-}
-function stanceText(s){return s==='A'?'アサルト':s==='B'?'ブレイク':'カウンター'}
-
-function judge(a,b){
-  if(a===b) return 'same'
-  if(beats[a]===b) return 'a'
-  if(beats[b]===a) return 'b'
-  return 'same'
-}
-
-function attrMult(a,b){
-  const win=(x,y)=> (x==='fire'&&y==='wind')||(x==='wind'&&y==='earth')||(x==='earth'&&y==='water')||(x==='water'&&y==='fire')
-  if(a===b) return 1.0
-  if(win(a,b)) return 1.1
-  if(win(b,a)) return 0.9
-  return 1.0
-}
-
-function dmg(lead,bc,oppLead,stanceRole,oppSupportShield){
-  const stanceMult = stanceRole==='first'?1.0:(stanceRole==='second'?0.8:0.9)
-  const base = (lead.atk + bc.power) * stanceMult
-  let add = 0
-  let guard = 0
-  if(bc.support==='same_attr' && bc.attr===lead.attr) add+=20
-  if(bc.support==='finisher' && false) add+=30
-  if(bc.support==='guard') guard+=15
-  const defRed = oppLead.def*0.5
-  let d = Math.max(0, Math.floor(base + add - defRed - (oppSupportShield||0)))
-  const mult = attrMult(bc.attr, oppLead.attr)
-  d = Math.floor(d * mult)
-  const noise = 1 + (R(-5,5)/100)
-  d = Math.max(0, Math.floor(d*noise))
-  return {d, guard, heal: bc.support==='heal'?10:0}
-}
-
-function applyRound(){
-  const pLead=state.p.leader, eLead=state.e.leader
-  const pC=state.p.deck[state.pBC], eC=state.e.deck[state.eBC]
-  const who=judge(state.pStance,state.eStance)
-  let pRole='same', eRole='same'
-  if(who==='a'){pRole='first'; eRole='second'}
-  else if(who==='b'){pRole='second'; eRole='first'}
-  const pFirst = pRole==='first'
-  const order = pFirst ? ['p','e'] : (eRole==='first'?['e','p'] : ['p','e'])
-
-  let pShield=0, eShield=0
-  if(pC.support==='guard') pShield+=15
-  if(eC.support==='guard') eShield+=15
-
-  const step=(side)=>{
-    if(side==='p'){
-      const out=dmg(pLead,pC,eLead, pRole, eShield)
-      state.ehp = Math.max(0, state.ehp - out.d)
-      if(out.heal) state.php = Math.min(pLead.hp, state.php + out.heal)
-      log(`あなた ${stanceText(state.pStance)} / ${pC.name} → 敵に ${out.d} ダメージ`)
-    }else{
-      const out=dmg(eLead,eC,pLead, eRole, pShield)
-      state.php = Math.max(0, state.php - out.d)
-      if(out.heal) state.ehp = Math.min(eLead.hp, state.ehp + out.heal)
-      log(`敵 ${stanceText(state.eStance)} / ${eC.name} → あなたに ${out.d} ダメージ`)
-    }
-  }
-  order.forEach(s=>step(s))
-
-  state.p.deck.splice(state.pBC,1)
-  state.e.deck.splice(state.eBC,1)
-  state.pBC=null
-  state.pStance=null
-  state.eBC=null
-  state.eStance=null
-  state.round++
-
-  if(state.php<=0 || state.ehp<=0 || state.round>10){
-    state.over=true
-    if(state.php>state.ehp) log('勝利！')
-    else if(state.php<state.ehp) log('敗北...')
-    else log('引き分け')
-  }
-}
-
-function log(s){
-  const el=document.getElementById('log')
-  el.textContent += s+'\n'
-  el.scrollTop=el.scrollHeight
-}
-
-function renderAll(fresh){
-  renderPanel('pPanel',state.p.leader,state.php,state.p.deck)
-  renderPanel('ePanel',state.e.leader,state.ehp,state.e.deck)
-  if(fresh){
-    renderBCs()
-    document.getElementById('log').textContent=''
-  }
-  document.querySelectorAll('[data-stance]').forEach(b=>{
-    b.onclick=()=>{
-      if(state.over) return
-      state.pStance=b.dataset.stance
-      document.querySelectorAll('[data-stance]').forEach(x=>x.disabled=false)
-      b.disabled=true
-      checkFightReady()
-    }
-  })
-  document.getElementById('restartBtn').onclick=()=>init()
-  document.getElementById('fightBtn').onclick=()=>{
-    if(state.over) return
-    if(state.pBC==null||!state.pStance) return
-    pickEnemy()
-    log(`あなた:${stanceText(state.pStance)} / 敵:${stanceText(state.eStance)}`)
-    applyRound()
-    renderAll()
-    checkFightReady()
-  }
-  checkFightReady()
-}
-
-function checkFightReady(){
-  const go = state.pBC!=null && state.pStance && !state.over
-  document.getElementById('fightBtn').disabled=!go
-}
-
-init()
+function emptyCollection(){return {cards:{}, customCards:[], customEnemies:[], deck:{leader:null,cards:[]}, points:0, stage:1}}
+function cardById(id){const all=[...BASE_POOL,...state.collection.customCards];return all.find(c=>c.id===id)}
+function addCardToCollection(cardId){state.collection.cards[cardId]=(state.collection.cards[cardId]||0)+1}
+function inventoryList(){const all=[...BASE_POOL,...state.collection.customCards];return all.map(c=>({card:c,count:state.collection.cards[c.id]||0})).filter(x=>x.count>0)}
+function canBuildDeck(){return state.collection.deck.leader && state.collection.deck.cards.length===10}
+function judge(a,b){if(a===b) return 'same'; if(beats[a]===b) return 'a'; if(beats[b]===a) return 'b'; return 'same'}
+function attrMult(a,b){const win=(x,y)=> (x==='fire'&&y==='wind')||(x==='wind'&&y==='earth')||(x==='earth'&&y==='water')||(x==='water'&&y==='fire'); if(a===b) return 1.0; if(win(a,b)) return 1.1; if(win(b,a)) return 0.9; return 1.0}
+function stanceMult(role){return role==='first'?1.0:(role==='second'?0.8:0.9)}
+function computeAuras(leader,deckCards){let atk=0,def=0,hp=0;deckCards.forEach(x=>{if(x.support==='aura_atk5') atk+=5; if(x.support==='aura_def5') def+=5; if(x.support==='aura_hp20') hp+=20});return {atk,def,hp}}
+function dmg(lead,bc,oppLead,role,oppShield,oppCurHP){const base=(lead.atk+bc.power)*stanceMult(role);let add=0,guard=0;if(bc.support==='same_attr'&&bc.attr===lead.attr) add+=20;if(bc.support==='finisher'&&(oppCurHP/oppLead.hp)<0.3) add+=30;if(bc.support==='guard') guard+=15;const pierce=bc.support==='pierce';const defRaw=oppLead.def*0.5;const defRed=pierce?defRaw*0.5:defRaw;let d=Math.max(0,Math.floor(base+add-defRed-(oppShield||0)));d=Math.floor(d*attrMult(bc.attr,oppLead.attr));const noise=1+(R(-5,5)/100);d=Math.max(0,Math.floor(d*noise));return {d,guard,heal:bc.support==='heal'?10:0}}
+function renderPanel(id,leader,hp,deck){const el=document.getElementById(id);const ratio=clamp(hp/leader.hp,0,1);el.innerHTML=`<div class='line'><div><div style='font-weight:700'>${leader.name}</div><div class='small'>HP ${hp}/${leader.hp} atk:${leader.atk} def:${leader.def} attr:${leader.attr}</div></div><div class='pill'>R.${state.round}</div></div><div class='hpbar mt8'><div style='width:${(ratio*100).toFixed(1)}%'></div></div><div class='small mt8'>Deck: ${deck.length}</div>`}
+function renderBCs(){const g=document.getElementById('bcGrid');g.innerHTML='';state.p.deck.forEach((c,i)=>{const b=document.createElement('div');b.className='card'+(state.pBC===i?' sel':'');b.innerHTML=`<div>${c.name}</div><div class='small'>pow:${c.power} attr:${c.attr} ${c.support?('/ '+c.support):''}</div>`;b.onclick=()=>{if(state.over) return;state.pBC=i;renderBCs();checkFightReady()};g.appendChild(b)})}
+function pickEnemy(){state.eStance=['A','B','C'][R(0,2)];state.eBC=R(0,state.e.deck.length-1)}
+function stanceText(s){return s==='A'?'A':s==='B'?'B':'C'}
+function applyRound(){const pLead=state.p.leader,eLead=state.e.leader;pLead._curHP=state.php;eLead._curHP=state.ehp;const pC=state.p.deck[state.pBC],eC=state.e.deck[state.eBC];const who=judge(state.pStance,state.eStance);let pRole='same',eRole='same';if(who==='a'){pRole='first';eRole='second'}else if(who==='b'){pRole='second';eRole='first'}const order=(pRole==='first')?['p','e']:(eRole==='first'?['e','p']:['p','e']);let pShield=0,eShield=0;if(pC.support==='guard') pShield+=15;if(eC.support==='guard') eShield+=15;const step=(side)=>{if(side==='p'){const out=dmg(pLead,pC,eLead,pRole,eShield,eLead._curHP);state.ehp=Math.max(0,state.ehp-out.d);if(out.heal) state.php=Math.min(pLead.hp,state.php+out.heal);log(`You ${stanceText(state.pStance)} / ${pC.name} → ${out.d}`)}else{const out=dmg(eLead,eC,pLead,eRole,pShield,pLead._curHP);state.php=Math.max(0,state.php-out.d);if(out.heal) state.ehp=Math.min(eLead.hp,state.ehp+out.heal);log(`Enemy ${stanceText(state.eStance)} / ${eC.name} → ${out.d}`)}};order.forEach(step);state.p.deck.splice(state.pBC,1);state.e.deck.splice(state.eBC,1);state.pBC=null;state.pStance=null;state.eBC=null;state.eStance=null;state.round++;if(state.php<=0||state.ehp<=0||state.round>10){state.over=true;let res='Draw';if(state.php>state.ehp) res='Win'; else if(state.php<state.ehp) res='Lose';log(`Result: ${res}`);if(res==='Win'){const gain=50*state.collection.stage;state.collection.points+=gain;state.collection.stage=Math.min(ENEMY_STAGES.length,state.collection.stage+1);log(`+${gain} pt, Stage → ${state.collection.stage}`)}else if(res==='Lose'){state.collection.stage=1;log(`Stage reset to 1`)}renderMeta();saveLocalSilent()}}
+function log(s){const el=document.getElementById('log');el.textContent+=s+'\n';el.scrollTop=el.scrollHeight}
+function renderMeta(){document.getElementById('stagePill').textContent=`Stage ${state.collection.stage}`;document.getElementById('ptPill').textContent=`${state.collection.points} pt`;document.getElementById('ptPill2').textContent=`${state.collection.points} pt`}
+function startBattle(){const deckDef=state.collection.deck;const leaderCard=cardById(deckDef.leader)||BASE_POOL[0];const deckCards=deckDef.cards.map(cardById).filter(Boolean).slice(0,10);const aura=computeAuras(leaderCard,deckCards);const pLead={id:leaderCard.id,name:leaderCard.name,hp:leaderCard.hp+ aura.hp,atk:leaderCard.atk+aura.atk,def:leaderCard.def+aura.def,attr:leaderCard.attr};const enemyT=ENEMY_STAGES[state.collection.stage-1];const eLead={id:enemyT.id,name:enemyT.leader.name,hp:enemyT.leader.hp,atk:enemyT.leader.atk,def:enemyT.leader.def,attr:enemyT.leader.attr};state={p:{leader:pLead,deck:[...deckCards]},e:{leader:eLead,deck:structuredClone(enemyT.deck).map(x=>({hp:110,atk:17,def:6,attr:x.attr,...x}))},php:pLead.hp,ehp:eLead.hp,round:1,pStance:null,pBC:null,eStance:null,eBC:null,over:false,collection:state.collection};document.getElementById('log').textContent='';renderPanel('pPanel',state.p.leader,state.php,state.p.deck);renderPanel('ePanel',state.e.leader,state.ehp,state.e.deck);renderBCs();renderMeta();checkFightReady()}
+function checkFightReady(){document.getElementById('fightBtn').disabled=!(state.pBC!=null&&state.pStance&&!state.over)}
+function renderDeckEditor(){const inv=inventoryList();const invEl=document.getElementById('invList');invEl.innerHTML='';inv.forEach(({card,count})=>{const d=document.createElement('div');d.className='card';d.draggable=true;d.dataset.id=card.id;d.innerHTML=`<div>${card.name} <span class='small'>x${count}</span></div><div class='small'>hp:${card.hp} atk:${card.atk} def:${card.def} attr:${card.attr} pow:${card.power} ${card.support||''}</div>`;d.onclick=()=>addToDeck(card.id);d.addEventListener('dragstart',ev=>{ev.dataTransfer.setData('text/plain',card.id)});invEl.appendChild(d)});const leaderArea=document.getElementById('leaderArea');leaderArea.innerHTML=state.collection.deck.leader?cardView(cardById(state.collection.deck.leader),true):'Drop or Select';leaderArea.ondragover=e=>e.preventDefault();leaderArea.ondrop=e=>{e.preventDefault();const id=e.dataTransfer.getData('text/plain');setLeader(id)};document.getElementById('leaderInfo').textContent=state.collection.deck.leader?leaderStatsText():'';const slots=document.getElementById('deckSlots');slots.innerHTML='';for(let i=0;i<10;i++){const s=document.createElement('div');s.className='slot';s.dataset.idx=i;const cid=state.collection.deck.cards[i];if(cid){s.className='card';s.textContent=cardById(cid).name;s.onclick=()=>{removeFromDeck(i)};s.draggable=true;s.addEventListener('dragstart',ev=>{ev.dataTransfer.setData('text/plain',`deck:${i}`)})}else{s.textContent='Empty'}s.ondragover=e=>e.preventDefault();s.ondrop=e=>{e.preventDefault();const data=e.dataTransfer.getData('text/plain');if(data.startsWith('deck:')){const from=+data.split(':')[1];const cur=state.collection.deck.cards[i]||null;state.collection.deck.cards[i]=state.collection.deck.cards[from];state.collection.deck.cards[from]=cur}else{addToDeck(e.dataTransfer.getData('text/plain'),i)}renderDeckEditor()};slots.appendChild(s)}}
+function cardView(c,compact){return `<div class='card${compact?'':' sel'}'><div>${c.name}</div><div class='small'>hp:${c.hp} atk:${c.atk} def:${c.def} attr:${c.attr} pow:${c.power} ${c.support||''}</div></div>`}
+function leaderStatsText(){const leader=cardById(state.collection.deck.leader);const deckCards=state.collection.deck.cards.map(cardById).filter(Boolean);const a=computeAuras(leader,deckCards);return `Leader base hp:${leader.hp} atk:${leader.atk} def:${leader.def} → aura +hp:${a.hp} +atk:${a.atk} +def:${a.def}`}
+function setLeader(id){if(!(state.collection.cards[id]>0)) return;state.collection.deck.leader=id;renderDeckEditor();saveLocalSilent()}
+function deckCountOf(id){return state.collection.deck.cards.filter(x=>x===id).length}
+function addToDeck(id,slot){if(!(state.collection.cards[id]>0)) return;const owned=state.collection.cards[id];const used=deckCountOf(id)+(state.collection.deck.leader===id?1:0);if(used>=owned) return;if(state.collection.deck.cards.length<10){if(slot==null){state.collection.deck.cards.push(id)}else{state.collection.deck.cards[slot]=id}}renderDeckEditor();saveLocalSilent()}
+function removeFromDeck(i){state.collection.deck.cards.splice(i,1);renderDeckEditor();saveLocalSilent()}
+function saveDeck(){if(!canBuildDeck()) return;saveLocalSilent()}
+function clearDeck(){state.collection.deck={leader:null,cards:[]};renderDeckEditor();saveLocalSilent()}
+function renderPool(){const tbody=document.querySelector('#poolTable tbody');tbody.innerHTML='';[...BASE_POOL,...state.collection.customCards].forEach(c=>{const tr=document.createElement('tr');tr.innerHTML=`<td>${c.id}</td><td>${c.name}</td><td>${c.rarity||'N'}</td><td>${c.attr}</td><td class='right'>${c.power}</td><td>${c.support||''}</td>`;tbody.appendChild(tr)})}
+function rarityWeight(r){if(r==='SR') return 1; if(r==='R') return 5; return 20}
+function getWeightedPool(){const pool=[...BASE_POOL,...state.collection.customCards];const arr=[];pool.forEach(c=>{const w=rarityWeight(c.rarity||'N');for(let i=0;i<w;i++) arr.push(c)});return arr}
+function pullOnce(){if(state.collection.points<100) return null;state.collection.points-=100;const pool=getWeightedPool();const c=pool[R(0,pool.length-1)];addCardToCollection(c.id);return c}
+function pull(times){const res=[];for(let i=0;i<times;i++){const c=pullOnce();if(c) res.push(c)}renderMeta();saveLocalSilent();return res}
+function renderGachaResult(list){const el=document.getElementById('gachaResult');el.innerHTML='';const box=document.createElement('div');box.className='list';list.forEach(c=>{const d=document.createElement('div');d.className='card';d.innerHTML=`<div>${c.name} <span class='pill'>${c.rarity||'N'}</span></div><div class='small'>hp:${c.hp} atk:${c.atk} def:${c.def} attr:${c.attr} pow:${c.power} ${c.support||''}</div>`;box.appendChild(d)}); if(list.length===0){el.innerHTML=`<div class='warn small'>ポイントが足りません</div>`}else{el.appendChild(box)}}
+function addCustomCard(data){const id=data.id&&data.id.trim()?data.id.trim():`C${Date.now()}`;if(cardById(id)) return {ok:false,msg:'ID重複'};const c={id,name:data.name||('Card'+id),hp:parseInt(data.hp||110),atk:parseInt(data.atk||18),def:parseInt(data.def||6),attr:data.attr||'fire',power:parseInt(data.power||16),support:data.support||'',rarity:data.rarity||'N'};state.collection.customCards.push(c);addCardToCollection(c.id);saveLocalSilent();return {ok:true,id}}
+function addCustomEnemy(data){const id=data.id&&data.id.trim()?data.id.trim():`EN${Date.now()}`;if(state.collection.customEnemies.some(x=>x.id===id)) return {ok:false,msg:'ID重複'};let deck=[];try{deck=JSON.parse(data.deck||'[]').map(x=>({id:x.id||`ED${R(100,999)}`,name:String(x.name||'Strike'),power:parseInt(x.power||16),attr:x.attr||'fire',support:x.support||''}))}catch(e){return {ok:false,msg:'Deck JSONエラー'}}const enemy={id,name:data.name||('Enemy'+id),leader:{name:data.name||('Enemy'+id),hp:parseInt(data.hp||120),atk:parseInt(data.atk||18),def:parseInt(data.def||6),attr:data.attr||'fire'},deck};state.collection.customEnemies.push(enemy);saveLocalSilent();return {ok:true,id}}
+function allStages(){return [...ENEMY_STAGES,...state.collection.customEnemies]}
+function saveLocalSilent(){try{localStorage.setItem('cklite_save',JSON.stringify(state.collection))}catch(e){}}
+function loadLocal(){const s=localStorage.getItem('cklite_save');if(!s) return false;try{state.collection=JSON.parse(s);return true}catch(e){return false}}
+function exportJson(){return JSON.stringify(state.collection,null,2)}
+function importJson(text){try{const obj=JSON.parse(text);if(!obj||!obj.cards) return {ok:false,msg:'形式不正'};state.collection=obj;saveLocalSilent();return {ok:true}}catch(e){return {ok:false,msg:'JSON解析エラー'}}}
+function initCollection(){state={collection:emptyCollection()};['B01','B02','B03','B04','B05','B06','B07','B08','B09','B10'].forEach(id=>addCardToCollection(id));state.collection.deck.leader='B01';state.collection.deck.cards=['B01','B02','B03','B04','B05','B06','B07','B08','B09','B10'];state.collection.points=300;state.collection.stage=1}
+function ensureLoaded(){if(!loadLocal()) initCollection()}
+function bindUI(){document.querySelectorAll('header .tabs button').forEach(b=>{b.onclick=()=>{document.querySelectorAll('[data-page]').forEach(s=>s.hidden=true);document.querySelector(`[data-page="${b.dataset.tab}"]`).hidden=false;if(b.dataset.tab==='deck') renderDeckEditor();if(b.dataset.tab==='gacha') renderPool();if(b.dataset.tab==='battle'){startBattle()}}});document.getElementById('fightBtn').onclick=()=>{if(state.over) return;if(state.pBC==null||!state.pStance) return;pickEnemy();log(`You:${state.pStance} / Enemy:${state.eStance}`);applyRound();renderPanel('pPanel',state.p.leader,state.php,state.p.deck);renderPanel('ePanel',state.e.leader,state.ehp,state.e.deck);renderBCs();checkFightReady()};document.getElementById('restartBtn').onclick=()=>startBattle();document.querySelectorAll('[data-stance]').forEach(b=>{b.onclick=()=>{if(state.over) return;state.pStance=b.dataset.stance;document.querySelectorAll('[data-stance]').forEach(x=>x.disabled=false);b.disabled=true;checkFightReady()}});document.getElementById('saveDeckBtn').onclick=()=>{saveDeck()};document.getElementById('clearDeckBtn').onclick=()=>{clearDeck()};document.getElementById('pull1').onclick=()=>{const res=pull(1);renderGachaResult(res)};document.getElementById('pull10').onclick=()=>{const res=pull(10);renderGachaResult(res)};document.getElementById('addCardBtn').onclick=()=>{const r=addCustomCard({id:val('c_id'),name:val('c_name'),hp:val('c_hp'),atk:val('c_atk'),def:val('c_def'),attr:val('c_attr'),power:val('c_pow'),support:val('c_sup'),rarity:val('c_rarity')});document.getElementById('addCardMsg').textContent=r.ok?`added ${r.id}`:(r.msg||'error');renderPool();renderDeckEditor()};document.getElementById('addEnemyBtn').onclick=()=>{const r=addCustomEnemy({id:val('e_id'),name:val('e_name'),hp:val('e_hp'),atk:val('e_atk'),def:val('e_def'),attr:val('e_attr'),deck:val('e_deck')});document.getElementById('addEnemyMsg').textContent=r.ok?`added ${r.id}`:(r.msg||'error')};document.getElementById('saveLocal').onclick=()=>{saveLocalSilent();msg('localMsg','saved',true)};document.getElementById('loadLocal').onclick=()=>{if(loadLocal()){msg('localMsg','loaded',true);renderAfterLoad()}else{msg('localMsg','no save')}};document.getElementById('downloadSave').onclick=()=>{const blob=new Blob([exportJson()],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='cklite_save.json';a.click();URL.revokeObjectURL(a.href)};document.getElementById('fileInput').addEventListener('change',e=>{const f=e.target.files[0];if(!f) return;const r=new FileReader();r.onload=()=>{const t=r.result;const res=importJson(t);if(res.ok){msg('loadMsg','loaded',true);renderAfterLoad()}else{msg('loadMsg',res.msg)}};r.readAsText(f)});document.getElementById('loadPaste').onclick=()=>{const t=val('pasteJson');const res=importJson(t);if(res.ok){msg('loadMsg','loaded',true);renderAfterLoad()}else{msg('loadMsg',res.msg)}}}
+function renderAfterLoad(){renderDeckEditor();renderPool();renderMeta();startBattle()}
+function val(id){return document.getElementById(id).value}
+function msg(id,text,ok){const el=document.getElementById(id);el.textContent=text;el.className='small '+(ok?'success':'warn');setTimeout(()=>{el.textContent='';el.className='small'},2000)}
+ensureLoaded();bindUI();renderMeta();startBattle()
 </script>
